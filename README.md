@@ -2,7 +2,7 @@
 
 ## Data Analysis Tools/Methods
 
-1. atac-fastp.swarm : swarm commands to run fastp to process fastq data, to remove adapters
+1. [atac-fastp.swarm](tools/atac-fastp.swarm)  : swarm commands to run fastp to process fastq data, to remove adapters
 2. bowtie2.swarm : swarm commands to run bowtie alignments
 3. chrMremovedBam.swarm : swarm commands to remove chrM data from alignments
 4. bamCoverageCPMNormalization.swarm : swarm commands to normalize alignment data
