@@ -1,0 +1,214 @@
+---
+title: "Enrichment Analysis of Differentially Open Chromatin Regions"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+This document describes KEGG pathway and Ontology enrichment analysis of differentially open chromatin regions. The analysis was performed using the significantly differentially OCR results from DESeq2 package
+
+```{r packages, include=FALSE}
+#Install and load required R packages. Uncomment the below install lines if you do not already have them installed
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ChIPseeker)
+library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+library(org.Mm.eg.db)
+BiocManager::install("ReactomePA")
+library(ReactomePA)
+library(clusterProfiler)
+library(rmarkdown)
+library(gridExtra)
+```
+
+```{r datacleaning, include=FALSE}
+# Convert deseq2 result to granges format for chipseeker annotation
+#tkopbscmst <- as.data.frame(resSigOrderedLFC_tko_pbs_cmst)
+#wt_pbs_cmst <- as.data.frame(resSigOrderedLFC_wt_pbs_cmst)
+#cmst_wt_tko <- as.data.frame(resSigOrderedLFC_cmst_wt_tko)
+
+# Read differential OCR lists
+tkopbscmst <- read.csv("TKO_PBS_vs_TKO_Cmst_sig_results.csv")
+wt_pbs_cmst <- read.csv("WT_PBS_vs_WT_Cmst_sig_results.csv")
+cmst_wt_tko <- read.csv("WT_Cmst_vs_TKO_Cmst_sig_results.csv")
+
+# Set the column header
+names(tkopbscmst)[1] <- "peakName"
+names(wt_pbs_cmst)[1] <- "peakName"
+names(cmst_wt_tko)[1] <- "peakName"
+
+# Split first column to coordinate parts
+tkopbscmst <- tkopbscmst %>% separate(peakName,c("Chr","Start","End"))
+wt_pbs_cmst <- wt_pbs_cmst %>% separate(peakName,c("Chr","Start","End"))
+cmst_wt_tko <- cmst_wt_tko %>% separate(peakName,c("Chr","Start","End"))
+
+# Add peakname column
+res1 = mutate(tkopbscmst, concated_column = paste(Chr, Start, End, sep = '.'))
+res2 = mutate(wt_pbs_cmst, concated_column = paste(Chr, Start, End, sep = '_'))
+res3 = mutate(cmst_wt_tko, concated_column = paste(Chr, Start, End, sep = '_'))
+
+res1 = res1 %>% relocate(concated_column, .after = End)
+res2 = res2 %>% relocate(concated_column, .after = End)
+res3 = res3 %>% relocate(concated_column, .after = End)
+
+# Create granges object
+myRanges1<- GRanges(seqnames=res1$Chr,ranges=IRanges(as.numeric(res1$Start),as.numeric(res1$End)),strand=NULL,res1$concated_column,res1$baseMean, res1$log2FoldChange,res1$lfcSE,res1$pvalue,res1$padj)
+myRanges2<- GRanges(seqnames=res2$Chr,ranges=IRanges(as.numeric(res2$Start),as.numeric(res2$End)),strand=NULL,res2$concated_column,res2$baseMean, res2$log2FoldChange,res2$lfcSE,res2$pvalue,res2$padj)
+myRanges3<- GRanges(seqnames=res3$Chr,ranges=IRanges(as.numeric(res3$Start),as.numeric(res3$End)),strand=NULL,res3$concated_column,res3$baseMean, res3$log2FoldChange,res3$lfcSE,res3$pvalue,res3$padj)
+
+# Annotate OCR's
+tkopbscmst_annot<-annotatePeak(myRanges1, TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+wt_pbs_cmst_annot<-annotatePeak(myRanges2, TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+cmst_wt_tko_annot<-annotatePeak(myRanges3, TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+
+tkopbscmst_annot
+wt_pbs_cmst_annot
+cmst_wt_tko_annot
+```
+
+## Save significantly differentially open chromatin regions, with annotations to .csv files
+Annotated lists of significantly differentially OCR's are saved in the following files;<br>
+<a href="TKO_PBS_vs_TKO_Cmst_sig_results_annotated.csv">TKO_PBS_vs_TKO_Cmst_sig_results_annotated.csv</a><br>
+<a href="WT_PBS_vs_WT_Cmst_sig_results_annotated.csv">WT_PBS_vs_WT_Cmst_sig_results_annotated.csv</a><br>
+<a href="WT_Cmst_vs_TKO_Cmst_sig_results_annotated.csv">WT_Cmst_vs_TKO_Cmst_sig_results_annotated.csv</a><br>
+
+```{r savedata, include=FALSE}
+write.csv(as.data.frame(tkopbscmst_annot), file="TKO_PBS_vs_TKO_Cmst_sig_results_annotated.csv")
+write.csv(as.data.frame(wt_pbs_cmst_annot), file="WT_PBS_vs_WT_Cmst_sig_results_annotated.csv")
+write.csv(as.data.frame(cmst_wt_tko_annot), file="WT_Cmst_vs_TKO_Cmst_sig_results_annotated.csv")
+
+## Create 6 column BED file for HOMER motif calling
+res1 = mutate(res1, strand=".")
+res2 = mutate(res2, strand=".")
+res3 = mutate(res3, strand=".")
+
+res1 = mutate(res1, Empty="")
+res2 = mutate(res2, Empty="")
+res3 = mutate(res3, Empty="")
+
+res1 = res1 %>% relocate(strand, .after = concated_column)
+res2 = res2 %>% relocate(strand, .after = concated_column)
+res3 = res3 %>% relocate(strand, .after = concated_column)
+
+res1 = res1 %>% relocate(Empty, .after = concated_column)
+res2 = res2 %>% relocate(Empty, .after = concated_column)
+res3 = res3 %>% relocate(Empty, .after = concated_column)
+
+## Save significantly differentially open chromatin regions, in bed format, for homer motif analysis in tab format
+write.table(as.data.frame(res1), file="TKO_PBS_vs_TKO_Cmst_sig_results_homer_input.tab", quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
+write.table(as.data.frame(res2), file="WT_PBS_vs_WT_Cmst_sig_results_homer_input.tab", quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
+write.table(as.data.frame(res3), file="WT_Cmst_vs_TKO_Cmst_sig_results_homer_input.tab", quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
+
+```
+
+### TKO_PBS_vs_TKO_Cmst_sig_results_annotated
+```{r displayAnnotations1, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated OCR's
+paged_table(as.data.frame(tkopbscmst_annot))
+```
+### WT_PBS_vs_WT_Cmst_sig_results_annotated
+```{r displayAnnotations2, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated OCR's
+paged_table(as.data.frame(wt_pbs_cmst_annot))
+```
+### WT_Cmst_vs_TKO_Cmst_sig_results_annotated
+```{r displayAnnotations3, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated OCR's
+paged_table(as.data.frame(cmst_wt_tko_annot))
+```
+
+## KEGG Pathway Enrichment
+No pathway is enriched in WT_Cmst_vs_TKO_Cmst, with an adjusted pvalue cutoff of 0.05
+
+```{r kegg, echo=FALSE, warning=FALSE, message=FALSE}
+#pathway1 <- enrichPathway(tkopbscmst_annotdf$geneId, organism = "mouse",pAdjustMethod="none", pvalueCutoff=0.05)
+#pathway2 <- enrichPathway(wt_pbs_cmst_annotdf$geneId, organism = "mouse",pAdjustMethod="none", pvalueCutoff=0.05)
+#pathway3 <- enrichPathway(cmst_wt_tko_annotdf$geneId, organism = "mouse",pAdjustMethod="none", pvalueCutoff=0.9)
+
+tkopbscmst_annotdf <- as.data.frame(tkopbscmst_annot)
+wt_pbs_cmst_annotdf <- as.data.frame(wt_pbs_cmst_annot)
+cmst_wt_tko_annotdf <- as.data.frame(cmst_wt_tko_annot)
+
+# Generate kegg pathway enrichments
+pathway1 <- enrichKEGG(tkopbscmst_annotdf$geneId, organism = "mouse",pAdjustMethod = "BH", qvalueCutoff = 0.05)
+pathway2 <- enrichKEGG(wt_pbs_cmst_annotdf$geneId, organism = "mouse",pAdjustMethod = "BH", qvalueCutoff = 0.05)
+pathway3 <- enrichKEGG(cmst_wt_tko_annotdf$geneId, organism = "mouse",pAdjustMethod = "BH", qvalueCutoff = 0.05)
+
+# Plot kegg pathway enrichments
+dotplot(pathway1, title="TKO_PBS_vs_TKO_Cmst", orderBy="x")
+dotplot(pathway2, title="WT_PBS_vs_WT_Cmst", orderBy="x")
+#dotplot(pathway3, title="WT_Cmst_vs_TKO_Cmst", orderBy="x")
+
+```
+
+## Ontology Biological Process Enrichment
+No GO BP is enriched in WT_Cmst_vs_TKO_Cmst, with an adjusted pvalue cutoff of 0.05
+
+```{r gobp, echo=FALSE, warning=FALSE, message=FALSE}
+
+# Generate GO Biological Process enrichments
+go1 <- enrichGO(gene = tkopbscmst_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "BP",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+go2 <- enrichGO(gene = wt_pbs_cmst_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "BP",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+go3 <- enrichGO(gene = cmst_wt_tko_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "BP",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+
+# Plot GO BP enrichments
+dotplot(go1, title="TKO_PBS_vs_TKO_Cmst", orderBy="x")
+dotplot(go2, title="WT_PBS_vs_WT_Cmst", orderBy="x")
+#dotplot(go3, title="WT_Cmst_vs_TKO_Cmst", orderBy="x")
+
+#grid.arrange(gop1, gop2, nrow=1)
+```
+
+## Ontology Molecular Function Enrichment
+No GO MF is enriched in WT_Cmst_vs_TKO_Cmst, with an adjusted pvalue cutoff of 0.05
+
+```{r gomf, echo=FALSE, warning=FALSE, message=FALSE}
+# Generate GO MF enrichments
+go1m <- enrichGO(gene = tkopbscmst_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "MF",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+go2m <- enrichGO(gene = wt_pbs_cmst_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "MF",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+go3m <- enrichGO(gene = cmst_wt_tko_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "MF",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+
+# Plot GO MF enrichments
+dotplot(go1m, title="TKO_PBS_vs_TKO_Cmst", orderBy="x")
+dotplot(go2m, title="WT_PBS_vs_WT_Cmst", orderBy="x")
+#dotplot(go3m, title="WT_Cmst_vs_TKO_Cmst", orderBy="x")
+
+#grid.arrange(gop1m, gop2m, nrow=1)
+```
+
+## Ontology Cellular Component Enrichment
+No GO CC is enriched in WT_Cmst_vs_TKO_Cmst, with an adjusted pvalue cutoff of 0.05
+
+```{r gocc, echo=FALSE, warning=FALSE, message=FALSE}
+# Generate GO CC enrichments
+go1c <- enrichGO(gene = tkopbscmst_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "CC",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+go2c <- enrichGO(gene = wt_pbs_cmst_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "CC",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+go3c <- enrichGO(gene = cmst_wt_tko_annotdf$geneId,keyType = "ENTREZID",OrgDb = org.Mm.eg.db,ont = "CC",pAdjustMethod = "BH",qvalueCutoff = 0.05, readable = TRUE)
+
+## Plot GO CC enrichments
+dotplot(go1c, title="TKO_PBS_vs_TKO_Cmst", orderBy="x")
+dotplot(go2c, title="WT_PBS_vs_WT_Cmst", orderBy="x")
+#dotplot(go3c, title="WT_Cmst_vs_TKO_Cmst", orderBy="x")
+
+#grid.arrange(gop1c, gop2c, nrow=1)
+```
+
+## Summary
+The significantly differentially OCR's in WT_Cmst_vs_TKO_Cmst doesnt have any pathway or ontologies enriched<br>
+
+## Reference
+https://www.rdocumentation.org/packages/clusterProfiler/versions/3.0.4<br>
+https://www.bioconductor.org/packages/devel/bioc/vignettes/ChIPseeker/inst/doc/ChIPseeker.html<br>
+
+## R Session Info
+```{r sessionfo}
+sessionInfo()
+```

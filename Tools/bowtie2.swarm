@@ -1,0 +1,65 @@
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 TKO_Cmt1_1_fastpclean.fq.gz -2 TKO_Cmt1_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o TKO_Cmt1.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 TKO_Cmt2_1_fastpclean.fq.gz -2 TKO_Cmt2_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o TKO_Cmt2.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 TKO_PBS1_1_fastpclean.fq.gz -2 TKO_PBS1_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o TKO_PBS1.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 TKO_PBS2_1_fastpclean.fq.gz -2 TKO_PBS2_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o TKO_PBS2.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 WT_Cmst1_1_fastpclean.fq.gz -2 WT_Cmst1_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o WT_Cmst1.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 WT_Cmst2_1_fastpclean.fq.gz -2 WT_Cmst2_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o WT_Cmst2.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 WT_PBS1_1_fastpclean.fq.gz -2 WT_PBS1_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o WT_PBS1.bam -
+
+cd fastpout \
+   && export BOWTIE2_INDEXES=Bowtie2Index \
+   && bowtie2 --very-sensitive -k 10 -p $(( SLURM_CPUS_PER_TASK - 2 )) -x genome \
+         -1 WT_PBS2_1_fastpclean.fq.gz -2 WT_PBS2_2_fastpclean.fq.gz   \
+   | samtools view -@ 14 -u - \
+   | samtools sort -n -@ 14 -o WT_PBS2.bam -
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,232 @@
+---
+title: "Differentially Open Chromatin Region Analysis"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+This document describes analysis of peaks for differentially open chromatin regions. The analysis was performed using DESeq2 package. 
+
+```{r packages, include=FALSE}
+#Install and load required R packages. Uncomment the below install lines if you do not already have them installed
+#BiocManager::install("DESeq2")
+#BiocManager::install("apeglm")
+#library(ChIPseeker)
+library(DESeq2)
+library(ggvenn)
+library(ggVennDiagram)
+library("gplots")
+library("heatmaply")
+```
+
+## Load featurecounts data (example rows below)
+```{r loadData, echo=FALSE, warning=FALSE, message=FALSE}
+## Load featurecount data and sample information data
+cts <- as.matrix(read.csv("tko_cmt_pbs_wt_featureCounts_for_deseq2.txt",sep="\t",row.names="Geneid"))
+head(cts)
+```
+
+## Load sample information data
+```{r loadsamplinfo, echo=FALSE, warning=FALSE, message=FALSE}
+## Load sampleinfo file
+coldata <- read.csv("sampleinfo.txt",sep="\t",row.names="ID")
+coldata  
+```
+
+## Differential Analysis
+Differential analysis is done with DESeq2, after removing rows with a total count of less than 10, an alpha of 0.05 and pvalue adjustment using BH method.
+
+```{r differentialanalysis, echo=FALSE, warning=FALSE, message=FALSE}
+## Convert count matrix to DESeq data set, with Sample column as design factor
+dds <- DESeqDataSetFromMatrix(countData = cts,colData = coldata,design = ~ Sample)
+
+## Filter out low count peaks
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep,]
+
+## Set the contrast reference levels
+dds$Sample <- relevel(dds$Sample, ref = "TKO_Cmst")
+dds_TKO_Cmst <- DESeq(dds)
+
+dds$Sample <- relevel(dds$Sample, ref = "WT_Cmst")
+dds_WT_Cmst <- DESeq(dds)
+```
+
+### TKO_PBS vs TKO_Cmst
+```{r tkopbscmst, echo=FALSE, warning=FALSE, message=FALSE}
+## Generate deseq2 differential results objects
+res_tko_pbs_cmst <- results(dds_TKO_Cmst, contrast=c("Sample","TKO_PBS","TKO_Cmst"), alpha=0.05, pAdjustMethod="BH")
+summary(res_tko_pbs_cmst)
+```
+
+### WT_PBS vs WT_Cmst
+```{r wtpbscmst, echo=FALSE, warning=FALSE, message=FALSE}
+res_wt_pbs_cmst <- results(dds_WT_Cmst, contrast=c("Sample","WT_PBS","WT_Cmst"), alpha=0.05, pAdjustMethod="BH")
+summary(res_wt_pbs_cmst)
+```
+
+### WT_Cmst vs TKO_Cmst
+```{r wtcmsttkocmst, echo=FALSE, warning=FALSE, message=FALSE}
+res_cmst_wt_tko <- results(dds_TKO_Cmst, contrast=c("Sample","WT_Cmst","TKO_Cmst"), alpha=0.05, pAdjustMethod="BH")
+summary(res_cmst_wt_tko)
+```
+
+```{r showcontrast, include=FALSE}
+## Show the contrast - coef's
+resultsNames(dds_TKO_Cmst)
+resultsNames(dds_WT_Cmst)
+```
+
+```{r shrinklfc, include=FALSE}
+## Shrink pvalues - https://doi.org/10.1093/bioinformatics/bty895
+resLFC_tko_pbs_cmst <- lfcShrink(dds_TKO_Cmst, coef="Sample_TKO_PBS_vs_TKO_Cmst", type="apeglm", res=res_tko_pbs_cmst)
+resLFC_wt_pbs_cmst <- lfcShrink(dds_WT_Cmst, coef="Sample_WT_PBS_vs_WT_Cmst", type="apeglm", res=res_wt_pbs_cmst)
+resLFC_cmst_wt_tko <- lfcShrink(dds_TKO_Cmst, coef="Sample_WT_Cmst_vs_TKO_Cmst", type="apeglm", res=res_cmst_wt_tko)
+
+## Open an empty svg device
+#png(filename="maplot-all-diffpeaks.png", width=8, height=3)
+```
+
+## MA Plots (differential data for all data points)
+```{r maplots, echo=FALSE, warning=FALSE, message=FALSE}
+## Set facet panels and plot
+par(mfrow=c(1,3), mar=c(4,4,2,1))
+xlim <- c(1,1e5); ylim <- c(-3,3)
+plotMA(resLFC_tko_pbs_cmst, xlim=xlim, ylim=ylim, main="TKO_PBS vs TKO_Cmst")
+plotMA(resLFC_wt_pbs_cmst, xlim=xlim, ylim=ylim, main="WT_PBS vs WT_Cmst")
+plotMA(resLFC_cmst_wt_tko, xlim=xlim, ylim=ylim, main="WT_Cmst vs TKO_Cmst")
+#run dev.off() if figure margin is too large
+#dev.off()
+```
+<br>
+## Significanly differentially open chromatin regions (OCR's)
+DESeq2 results are ordered by pvalue, filtered for a padj < 0.05 and log2fold change >=1.<br><br>
+
+### Column descriptions
+```{r columndescription, echo=FALSE, warning=FALSE, message=FALSE}
+## Describe column headers for the differetnially open chromatin region files
+mcols(resLFC_tko_pbs_cmst)$description
+```
+### Full DESeq2 results are saved in csv files<br>
+<a href="TKO_PBS_vs_TKO_Cmst_full_results.csv">TKO_PBS_vs_TKO_Cmst_full_results.csv</a><br>
+<a href="WT_PBS_vs_WT_Cmst_full_results.csv">WT_PBS_vs_WT_Cmst_full_results.csv</a><br>
+<a href="WT_Cmst_vs_TKO_Cmst_full_results.csv">WT_Cmst_vs_TKO_Cmst_full_results.csv</a><br>
+
+```{r savingfull, echo=FALSE, warning=FALSE, message=FALSE}
+## Sort results based on pvalue column
+resOrderedLFC_tko_pbs_cmst <- resLFC_tko_pbs_cmst[order(resLFC_tko_pbs_cmst$pvalue),]
+resOrderedLFC_wt_pbs_cmst <- resLFC_wt_pbs_cmst[order(resLFC_wt_pbs_cmst$pvalue),]
+resOrderedLFC_cmst_wt_tko <- resLFC_cmst_wt_tko[order(resLFC_cmst_wt_tko$pvalue),]
+
+## Save sorted full results to .csv files
+write.csv(as.data.frame(resOrderedLFC_tko_pbs_cmst), file="TKO_PBS_vs_TKO_Cmst_full_results.csv")
+write.csv(as.data.frame(resOrderedLFC_wt_pbs_cmst), file="WT_PBS_vs_WT_Cmst_full_results.csv")
+write.csv(as.data.frame(resOrderedLFC_cmst_wt_tko), file="WT_Cmst_vs_TKO_Cmst_full_results.csv")
+```
+
+### Significantly differentially OCR's lists are saved in csv files<br>
+<a href="TKO_PBS_vs_TKO_Cmst_sig_results.csv">TKO_PBS_vs_TKO_Cmst_sig_results.csv</a><br>
+<a href="WT_PBS_vs_WT_Cmst_sig_results.csv">WT_PBS_vs_WT_Cmst_sig_results.csv</a><br>
+<a href="WT_Cmst_vs_TKO_Cmst_sig_results.csv">WT_Cmst_vs_TKO_Cmst_sig_results.csv</a><br>
+
+```{r savesiglist, echo=FALSE, warning=FALSE, message=FALSE}
+## Filter for significantly differentially open chromatin regions - padj 0.05, logfold 1 (fold 2)
+resSigOrderedLFC_tko_pbs_cmst <- subset(resOrderedLFC_tko_pbs_cmst, padj < 0.05 & abs(log2FoldChange) >= 1)
+resSigOrderedLFC_wt_pbs_cmst <- subset(resOrderedLFC_wt_pbs_cmst, padj < 0.05 & abs(log2FoldChange) >= 1)
+resSigOrderedLFC_cmst_wt_tko <- subset(resOrderedLFC_cmst_wt_tko, padj < 0.05 & abs(log2FoldChange) >= 1)
+
+## Save significantly differentially open chromatin regions to .csv files
+write.csv(as.data.frame(resSigOrderedLFC_tko_pbs_cmst), file="TKO_PBS_vs_TKO_Cmst_sig_results.csv")
+write.csv(as.data.frame(resSigOrderedLFC_wt_pbs_cmst), file="WT_PBS_vs_WT_Cmst_sig_results.csv")
+write.csv(as.data.frame(resSigOrderedLFC_cmst_wt_tko), file="WT_Cmst_vs_TKO_Cmst_sig_results.csv")
+```
+
+## Extract individual sample data for significant OCR's
+Save normalized individual sample data in csv files <br>
+<a href="TKO_PBS_vs_TKO_Cmst_sig_normalized_data.csv">TKO_PBS_vs_TKO_Cmst_sig_normalized_data.csv</a><br>
+<a href="WT_PBS_vs_WT_Cmst_sig_normalized_data.csv">WT_PBS_vs_WT_Cmst_sig_normalized_data.csv</a><br>
+<a href="WT_Cmst_vs_TKO_Cmst_sig_normalized_data.csv">WT_Cmst_vs_TKO_Cmst_sig_normalized_data.csv</a><br>
+
+```{r extractsampledata, echo=FALSE, warning=FALSE, message=FALSE}
+## Store the row names of significant peaks
+summary(selectedresSigOrderedLFC_tko_pbs_cmst<-rownames(resSigOrderedLFC_tko_pbs_cmst))
+summary(selectedresSigOrderedLFC_wt_pbs_cmst<-rownames(resSigOrderedLFC_wt_pbs_cmst))
+summary(selectedresSigOrderedLFC_cmst_wt_tko<-rownames(resSigOrderedLFC_cmst_wt_tko))
+
+## Retrieve and store normalized data for all samples, for the significant peaks
+selectedtko_pbs_cmst = log2(counts(dds_TKO_Cmst,normalized=TRUE)[rownames(dds_TKO_Cmst) %in% selectedresSigOrderedLFC_tko_pbs_cmst,])
+selectedwt_pbs_cmst = log2(counts(dds_WT_Cmst,normalized=TRUE)[rownames(dds_WT_Cmst) %in% selectedresSigOrderedLFC_wt_pbs_cmst,])
+selectedcmst_wt_tko = log2(counts(dds_TKO_Cmst,normalized=TRUE)[rownames(dds_TKO_Cmst) %in% selectedresSigOrderedLFC_cmst_wt_tko,])
+
+## Save normalized data for all samples, for the significant peaks to .csv files
+write.csv(as.data.frame(selectedtko_pbs_cmst), file="TKO_PBS_vs_TKO_Cmst_sig_normalized_data.csv")
+write.csv(as.data.frame(selectedwt_pbs_cmst), file="WT_PBS_vs_WT_Cmst_sig_normalized_data.csv")
+write.csv(as.data.frame(selectedcmst_wt_tko), file="WT_Cmst_vs_TKO_Cmst_sig_normalized_data.csv")
+```
+
+## Clustered heatmaps
+### TKO_PBS vs TKO_Cmst
+```{r heatmap1, echo=FALSE, warning=FALSE, message=FALSE}
+heatmap.2(log2(counts(dds_TKO_Cmst,normalized=TRUE)[rownames(dds_TKO_Cmst) %in% selectedresSigOrderedLFC_tko_pbs_cmst,]), main="TKO_PBS vs TKO_Cmst", scale="row", trace="none", col="heat.colors", labRow=FALSE,cexRow=1,cexCol=1,margins=c(12,8))
+```
+
+### WT_PBS vs WT_Cmst
+```{r heatmap2, echo=FALSE, warning=FALSE, message=FALSE}
+heatmap.2(log2(counts(dds_WT_Cmst,normalized=TRUE)[rownames(dds_WT_Cmst) %in% selectedresSigOrderedLFC_wt_pbs_cmst,]), main="WT_PBS vs WT_Cmst", scale="row", trace="none", col="heat.colors", labRow=FALSE,cexRow=1,cexCol=1,margins=c(12,8))
+```
+
+### WT_Cmst vs TKO_Cmst
+```{r heatmap3, echo=FALSE, warning=FALSE, message=FALSE}
+heatmap.2(log2(counts(dds_TKO_Cmst,normalized=TRUE)[rownames(dds_TKO_Cmst) %in% selectedresSigOrderedLFC_cmst_wt_tko,]), main="WT_Cmst vs TKO_Cmst", scale="row", trace="none", col="heat.colors", labRow=FALSE,cexRow=1,cexCol=1,margins=c(12,8))
+```
+
+```{r alternateheatmaps, echo=FALSE, warning=FALSE, message=FALSE}
+#heatmaply(selectedtko_pbs_cmst, k_col=2, k_row=7, col=rainbow, trace="none", column_text_angle=90, showticklabels = c(T,F),main="TKO_PBS vs TKO_Cmst")
+#heatmaply(selectedwt_pbs_cmst, k_col=2, k_row=7, col=rainbow, trace="none", column_text_angle=90, showticklabels = c(T,F),main="WT_PBS vs WT_Cmst")
+#heatmaply(selectedcmst_wt_tko, k_col=2, k_row=7, col=rainbow, trace="none", column_text_angle=90, showticklabels = c(T,F),main="WT_Cmst vs TKO_Cmst")
+
+#ht1<-Heatmap(log2(counts(dds_TKO_Cmst,normalized=TRUE)[rownames(dds_TKO_Cmst) %in% selectedresSigOrderedLFC_tko_pbs_cmst,]), show_row_names = FALSE, column_title = "TKO_PBS vs TKO_Cmst")
+#ht2<-Heatmap(log2(counts(dds_WT_Cmst,normalized=TRUE)[rownames(dds_WT_Cmst) %in% selectedresSigOrderedLFC_wt_pbs_cmst,]), show_row_names = FALSE, column_title = "WT_PBS vs WT_Cmst")
+#ht3<-Heatmap(log2(counts(dds_TKO_Cmst,normalized=TRUE)[rownames(dds_TKO_Cmst) %in% selectedresSigOrderedLFC_cmst_wt_tko,]), show_row_names = FALSE, column_title = "WT_Cmst vs TKO_Cmst")
+```
+
+## Significant Peak Comparison
+The below venndiagram compares significant OCR's between TKO_PBS vs TKO_Cmst, WT_PBS vs WT_Cmst, WT_Cmst vs TKO_Cmst.<br>
+
+```{r ocrVennDiagram, echo=FALSE, warning=FALSE, message=FALSE}
+# Plot venndiagram between comparison ocrs
+# significant ocr's list for all comparisons
+
+ocrs<-list(TKOPBS_TKOCmst=selectedresSigOrderedLFC_tko_pbs_cmst, WTPBS_WTCmst=selectedresSigOrderedLFC_wt_pbs_cmst, WTCmst_TKOCmst=selectedresSigOrderedLFC_cmst_wt_tko)
+
+# Generate interactive venndiagram of ocr overlap between comparisons
+ggVennDiagram(ocrs, label = c("count"))
+
+```
+
+## Save R session
+```{r savesession}
+save.image("deseq2.RData")
+```
+
+## Summary
+The Cmst has the most effect along with the mutant, showing 4816 significantly OCR's in TKO_PBS vs TKO_Cmst (2330 unique - as seen in the venndiagram).<br>
+WT_PBS vs WT_Cmst has 3524 significanly OCR's<br>
+The mutant alone (WT_Cmst vs TKO_Cmst) has the least number (680) of significantly OCR's<br> 
+
+## Reference
+1. DESeq2: https://bioc.ism.ac.jp/packages/3.7/bioc/html/DESeq2.html<br>
+2. LFCShrink: https://doi.org/10.1093/bioinformatics/bty895 <br>
+3. HeatMap2: https://earlglynn.github.io/RNotes/package/gplots/heatmap2.html <br>
+
+## R Session Info
+```{r sessionfo}
+sessionInfo()
+```

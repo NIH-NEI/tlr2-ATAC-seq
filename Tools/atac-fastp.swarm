@@ -1,0 +1,23 @@
+fastp -i TKO_Cmt1_1.fq.gz -I TKO_Cmt1_2.fq.gz -o TKO_Cmt1_1_fastpclean.fq.gz -O TKO_Cmt1_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h TKO_Cmt1.html -j TKO_Cmt1.json -l 18 -q 20 -e 20 --unpaired1 TKO_Cmt1_1_fastp_unpaired.fq.gz --unpaired2 TKO_Cmt1_2_fastp_unpaired.fq.gz --failed_out TKO_Cmt1_fastp_failed.fq.gz > log_fastp_TKO_Cmt1
+
+fastp -i TKO_Cmt2_1.fq.gz -I TKO_Cmt2_2.fq.gz -o TKO_Cmt2_1_fastpclean.fq.gz -O TKO_Cmt2_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h TKO_Cmt2.html -j TKO_Cmt2.json -l 18 -q 20 -e 20 --unpaired1 TKO_Cmt2_1_fastp_unpaired.fq.gz --unpaired2 TKO_Cmt2_2_fastp_unpaired.fq.gz --failed_out TKO_Cmt2_fastp_failed.fq.gz > log_fastp_TKO_Cmt2
+
+fastp -i TKO_PBS1_1.fq.gz -I TKO_PBS1_2.fq.gz -o TKO_PBS1_1_fastpclean.fq.gz -O TKO_PBS1_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h TKO_PBS1.html -j TKO_PBS1.json -l 18 -q 20 -e 20 --unpaired1 TKO_PBS1_1_fastp_unpaired.fq.gz --unpaired2 TKO_PBS1_2_fastp_unpaired.fq.gz --failed_out TKO_PBS1_fastp_failed.fq.gz > log_fastp_TKO_PBS1
+
+fastp -i TKO_PBS2_1.fq.gz -I TKO_PBS2_2.fq.gz -o TKO_PBS2_1_fastpclean.fq.gz -O TKO_PBS2_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h TKO_PBS2.html -j TKO_PBS2.json -l 18 -q 20 -e 20 --unpaired1 TKO_PBS2_1_fastp_unpaired.fq.gz --unpaired2 TKO_PBS2_2_fastp_unpaired.fq.gz --failed_out TKO_PBS2_fastp_failed.fq.gz > log_fastp_TKO_PBS2
+
+fastp -i WT_Cmst1_1.fq.gz -I WT_Cmst1_2.fq.gz -o WT_Cmst1_1_fastpclean.fq.gz -O WT_Cmst1_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h WT_Cmst1.html -j WT_Cmst1.json -l 18 -q 20 -e 20 --unpaired1 WT_Cmst1_1_fastp_unpaired.fq.gz --unpaired2 WT_Cmst1_2_fastp_unpaired.fq.gz --failed_out WT_Cmst1_fastp_failed.fq.gz > log_fastp_WT_Cmst1
+
+fastp -i WT_Cmst2_1.fq.gz -I WT_Cmst2_2.fq.gz -o WT_Cmst2_1_fastpclean.fq.gz -O WT_Cmst2_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h WT_Cmst2.html -j WT_Cmst2.json -l 18 -q 20 -e 20 --unpaired1 WT_Cmst2_1_fastp_unpaired.fq.gz --unpaired2 WT_Cmst2_2_fastp_unpaired.fq.gz --failed_out WT_Cmst2_fastp_failed.fq.gz > log_fastp_WT_Cmst2
+
+fastp -i WT_PBS1_1.fq.gz -I WT_PBS1_2.fq.gz -o WT_PBS1_1_fastpclean.fq.gz -O WT_PBS1_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h WT_PBS1.html -j WT_PBS1.json -l 18 -q 20 -e 20 --unpaired1 WT_PBS1_1_fastp_unpaired.fq.gz --unpaired2 WT_PBS1_2_fastp_unpaired.fq.gz --failed_out WT_PBS1_fastp_failed.fq.gz > log_fastp_WT_PBS1
+
+fastp -i WT_PBS2_1.fq.gz -I WT_PBS2_2.fq.gz -o WT_PBS2_1_fastpclean.fq.gz -O WT_PBS2_2_fastpclean.fq.gz --detect_adapter_for_pe -w 16 -h WT_PBS2.html -j WT_PBS2.json -l 18 -q 20 -e 20 --unpaired1 WT_PBS2_1_fastp_unpaired.fq.gz --unpaired2 WT_PBS2_2_fastp_unpaired.fq.gz --failed_out WT_PBS2_fastp_failed.fq.gz > log_fastp_WT_PBS2
+
+
+
+
+
+
+
+

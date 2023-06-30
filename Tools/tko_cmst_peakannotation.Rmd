@@ -1,0 +1,217 @@
+---
+title: "TKO_Cmst ATAC-Seq Peak Annotation"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This document has annotations, visualizations and comparisons for peaks generated in the TKO_Cmst_PBS_WT ATAC-Seq experiments. The peak annotation tables are saved as a tab delimited text file, which could be opened in excel or text editor. The peak annotations are saved as wtpbs_peaks_annotation.tsv, wtcmst_peaks_annotation.tsv, tkopbs_peaks_annotation.tsv, tkocmt_peaks_annotation.tsv in the current working directory.
+
+```{r packages, include=FALSE}
+#Install and load required R packages. Uncomment the below install lines if you do not already have them installed
+#install.packages("BiocManager")
+#BiocManager::install("ChIPseeker")
+#BiocManager::install("clusterProfiler")
+#BiocManager::install("org.Mm.eg.db")
+library(ChIPseeker)
+library(TxDb.Mmusculus.UCSC.mm10.knownGene)
+library(org.Mm.eg.db)
+library(plotly)
+library(plyr)
+library(dplyr)
+library(clusterProfiler)
+library(ggvenn)
+library(ggVennDiagram)
+library(rmarkdown)
+```
+
+
+```{r generateAnnotations, include=FALSE}
+## Generate Annotation tables
+# The below set of R code is used to annotate peaks identified from WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. 
+# Set working directory and assign reference genome
+setwd("~/Downloads")
+txdb<-TxDb.Mmusculus.UCSC.mm10.knownGene
+
+#Annotate peaks
+wtpbs_annot<-annotatePeak("WT_PBS.narrowPeak", TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+wtcmst_annot<-annotatePeak("WT_Cmst.narrowPeak", TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+tkopbs_annot<-annotatePeak("TKO_PBS.narrowPeak", TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+tkocmt_annot<-annotatePeak("TKO_Cmt.narrowPeak", TxDb = TxDb.Mmusculus.UCSC.mm10.knownGene, annoDb = "org.Mm.eg.db")
+
+# Annotate peaks to a list
+files <- list(WT_PBS='WT_PBS.narrowPeak', TKO_PBS='TKO_PBS.narrowPeak', WT_Cmst='WT_Cmst.narrowPeak', TKO_Cmt='TKO_Cmt.narrowPeak')
+peakAnnoList <- lapply(files, annotatePeak, TxDb=txdb,tssRegion=c(-3000, 3000), verbose=FALSE)
+
+# Covert data to table
+wtpbs_table=as.data.frame(wtpbs_annot)
+wtcmst_table=as.data.frame(wtcmst_annot)
+tkopbs_table=as.data.frame(tkopbs_annot)
+tkocmt_table=as.data.frame(tkocmt_annot)
+
+# Rename column headers
+names(wtpbs_table)[6] <- "peakName"
+names(wtpbs_table)[7] <- "score"
+names(wtpbs_table)[8] <- "orientation"
+names(wtpbs_table)[9] <- "signalValue"
+names(wtpbs_table)[10] <- "-log10(p-value)"
+names(wtpbs_table)[11] <- "-log10(q-value)"
+names(wtpbs_table)[12] <- "peak"
+
+names(wtcmst_table)[6] <- "peakName"
+names(wtcmst_table)[7] <- "score"
+names(wtcmst_table)[8] <- "orientation"
+names(wtcmst_table)[9] <- "signalValue"
+names(wtcmst_table)[10] <- "-log10(p-value)"
+names(wtcmst_table)[11] <- "-log10(q-value)"
+names(wtcmst_table)[12] <- "peak"
+
+names(tkopbs_table)[6] <- "peakName"
+names(tkopbs_table)[7] <- "score"
+names(tkopbs_table)[8] <- "orientation"
+names(tkopbs_table)[9] <- "signalValue"
+names(tkopbs_table)[10] <- "-log10(p-value)"
+names(tkopbs_table)[11] <- "-log10(q-value)"
+names(tkopbs_table)[12] <- "peak"
+
+names(tkocmt_table)[6] <- "peakName"
+names(tkocmt_table)[7] <- "score"
+names(tkocmt_table)[8] <- "orientation"
+names(tkocmt_table)[9] <- "signalValue"
+names(tkocmt_table)[10] <- "-log10(p-value)"
+names(tkocmt_table)[11] <- "-log10(q-value)"
+names(tkocmt_table)[12] <- "peak"
+
+#save the tab separated format text file of the combined expression data
+write.table(wtpbs_table, "wtpbs_peaks_annotation.tsv", sep="\t", row.names=FALSE, quote = FALSE) 
+write.table(wtcmst_table, "wtcmst_peaks_annotation.tsv", sep="\t", row.names=FALSE, quote = FALSE) 
+write.table(tkopbs_table, "tkopbs_peaks_annotation.tsv", sep="\t", row.names=FALSE, quote = FALSE) 
+write.table(tkocmt_table, "tkocmt_peaks_annotation.tsv", sep="\t", row.names=FALSE, quote = FALSE) 
+
+```
+
+## Annotated Peaks tables for WT_PBS
+The 'score' is Average AUC (total AUC / bp) × 1000, rounded to the nearest int (max. 1000)<br>
+The 'signalValue' is Total area under the curve (AUC)<br>
+The 'peak' is the midpoint (summit) of the peak interval with the highest significance
+
+```{r displayAnnotations1, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated peaks identified from WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. 
+# Output annotation table for WT_PBS
+paged_table(wtpbs_table)
+```
+
+## Annotated Peaks tables for WT_Cmst
+The 'score' is Average AUC (total AUC / bp) × 1000, rounded to the nearest int (max. 1000)<br>
+The 'signalValue' is Total area under the curve (AUC)<br>
+The 'peak' is the midpoint (summit) of the peak interval with the highest significance
+
+```{r displayAnnotations2, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated peaks identified from WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. 
+# Output annotation table for WT_Cmst
+paged_table(wtcmst_table)
+```
+
+## Annotated Peaks tables for TKO_PBS
+The 'score' is Average AUC (total AUC / bp) × 1000, rounded to the nearest int (max. 1000)<br>
+The 'signalValue' is Total area under the curve (AUC)<br>
+The 'peak' is the midpoint (summit) of the peak interval with the highest significance
+
+```{r displayAnnotations3, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated peaks identified from WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. 
+# Output annotation table for TKO_PBS
+paged_table(tkopbs_table)
+```
+## Annotated Peaks tables for TKO_Cmt
+The 'score' is Average AUC (total AUC / bp) × 1000, rounded to the nearest int (max. 1000)<br>
+The 'signalValue' is Total area under the curve (AUC)<br>
+The 'peak' is the midpoint (summit) of the peak interval with the highest significance
+
+```{r displayAnnotations4, echo=FALSE, warning=FALSE, message=FALSE}
+#The below set of R code is used to dispaly the annotated peaks identified from WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. 
+# Output annotation table for TKO_Cmt
+paged_table(tkocmt_table)
+```
+
+
+```{r generateTagMatrix, echo=FALSE, warning=FALSE, message=FALSE}
+## Generate TagMatrix
+#The below set of R code is used to generate tagmatrix for WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. 
+
+# Generate promoter regions
+promoter <- getPromoters(TxDb=txdb, upstream=3000, downstream=3000)
+
+# Generate tagmatrix for all files
+tagMatrixList <- lapply(files, getTagMatrix, windows=promoter)
+```
+
+## Peak distribution
+The below plot shows the peak distribution for samples; WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt.<br>
+NOTE: PBS and Cmst have big difference in how much of the peaks are within the 1kb of promoter.
+
+```{r plotPeakDistribution, echo=FALSE, warning=FALSE, message=FALSE}
+# Plot peak distribution
+plotAnnoBar(peakAnnoList)
+```
+
+## Peak Distance To TSS
+The below plot shows the plot of peak distance to TSS for samples; WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. <br>
+NOTE: PBS and Cmst have big difference in how much of the peaks are within the 1kb of promoter.
+
+```{r plotPeakDistanceToTSS, echo=FALSE, warning=FALSE, message=FALSE}
+# Plot peak distance to tss
+plotDistToTSS(peakAnnoList)
+```
+
+## Tag Heat Map
+The below plot shows the tag heatmap around TSS, for samples; WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. <br>
+NOTE: PBS and Cmst have big difference in tag density around TSS.
+
+```{r plottagheatmap, echo=FALSE, warning=FALSE, message=FALSE}
+# Plot tag heatmap around tss
+tagHeatmap(tagMatrixList, xlim=c(-3000, 3000), color=rainbow(length(files)))
+```
+
+## Average tag profile around TSS
+The below plot shows the avarage tag profile around TSS, for samples; WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt. <br>
+NOTE: PBS and Cmst have big difference in average tag density around TSS.
+
+```{r plotAverageProfile, echo=FALSE, warning=FALSE, message=FALSE}
+# Plot average tag profile around tss
+plotAvgProf(tagMatrixList, xlim=c(-3000, 3000), conf=0.95,resample=500, facet="row")
+```
+
+## Peak Comparison
+The below venndiagram compares peak associated gene list between samples; WT_PBS, TKO_PBS, WT_Cmst, TKO_Cmt.<br>
+TKO_Cmt has a large number of uniq peak associated genes.<br>
+WT_Cmst and TKO_Cmt share a large number of uniq peaks that are not found in PBS.<br>
+Hover over the sets to see the overlapping peak counts.
+
+```{r peaksVennDiagram, echo=FALSE, warning=FALSE, message=FALSE}
+# Plot venndiagram between sample peaks
+# Generate gene id list for all samples
+genes= lapply(peakAnnoList, function(i) as.data.frame(i)$geneId)
+
+# Generate interactive venndiagram of gene list overlap between samples
+ggplotly(ggVennDiagram(genes, label_alpha = 0))
+
+```
+
+## Reference
+http://bioconductor.org/packages/release/bioc/manuals/ChIPseeker/man/ChIPseeker.pdf<br>
+https://www.datanovia.com/en/blog/venn-diagram-with-r-or-rstudio-a-million-ways/<br>
+https://www.bioconductor.org/packages/devel/bioc/vignettes/ChIPseeker/inst/doc/ChIPseeker.html<br>
+http://guangchuangyu.github.io/2014/04/visualization-methods-in-chipseeker/
+
+## R Session Info
+```{r sessionfo}
+sessionInfo()
+```

@@ -1,0 +1,6 @@
+#cd Alignment; multiBamSummary bins --bamfiles *sorted.bam --minMappingQuality 30 -out tko_cmt_pbs_wt_readCounts.npz --outRawCounts tko_cmt_pbs_wt_readCounts.tab -p $SLURM_CPUS_PER_TASK
+
+cd Alignment; plotCorrelation -in tko_cmt_pbs_wt_readCounts.npz --corMethod pearson --skipZeros --plotTitle "Pearson Correlation of Read Counts" --whatToPlot heatmap --colorMap RdYlBu --plotNumbers -o samples_heatmap_Pearson_Corr_readCounts.svg --labels TKO_Cmt1 TKO_Cmt2 TKO_PBS1 TKO_PBS2 WT_Cmst1 WT_Cmst2 WT_PBS1 WT_PBS2 --outFileCorMatrix samples_SpearmanCorr_readCounts.tab
+
+
+

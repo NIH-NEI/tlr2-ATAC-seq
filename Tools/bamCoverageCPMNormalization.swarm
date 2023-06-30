@@ -1,0 +1,17 @@
+cd Alignment; samtools sort TKO_Cmt1.bam -@ $SLURM_CPUS_PER_TASK > TKO_Cmt1_sorted.bam; samtools index TKO_Cmt1_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam TKO_Cmt1_sorted.bam -o TKO_Cmt1_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort TKO_Cmt2.bam -@ $SLURM_CPUS_PER_TASK > TKO_Cmt2_sorted.bam; samtools index TKO_Cmt2_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam TKO_Cmt2_sorted.bam -o TKO_Cmt2_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort TKO_PBS1.bam -@ $SLURM_CPUS_PER_TASK > TKO_PBS1_sorted.bam; samtools index TKO_PBS1_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam TKO_PBS1_sorted.bam -o TKO_PBS1_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort TKO_PBS2.bam -@ $SLURM_CPUS_PER_TASK > TKO_PBS2_sorted.bam; samtools index TKO_PBS2_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam TKO_PBS2_sorted.bam -o TKO_PBS2_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort WT_Cmst1.bam -@ $SLURM_CPUS_PER_TASK > WT_Cmst1_sorted.bam; samtools index WT_Cmst1_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam WT_Cmst1_sorted.bam -o WT_Cmst1_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort WT_Cmst2.bam -@ $SLURM_CPUS_PER_TASK > WT_Cmst2_sorted.bam; samtools index WT_Cmst2_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam WT_Cmst2_sorted.bam -o WT_Cmst2_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort WT_PBS1.bam -@ $SLURM_CPUS_PER_TASK > WT_PBS1_sorted.bam; samtools index WT_PBS1_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam WT_PBS1_sorted.bam -o WT_PBS1_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+cd Alignment; samtools sort WT_PBS2.bam -@ $SLURM_CPUS_PER_TASK > WT_PBS2_sorted.bam; samtools index WT_PBS2_sorted.bam -@ $SLURM_CPUS_PER_TASK ; bamCoverage --bam WT_PBS2_sorted.bam -o WT_PBS2_cpm.bw --binSize 1 --normalizeUsing CPM --effectiveGenomeSize 2652783500 --extendReads --exactScaling --numberOfProcessors $SLURM_CPUS_PER_TASK
+
+

@@ -1,0 +1,8 @@
+cd Alignment; Genrich -t TKO_Cmt1.bam,TKO_Cmt2.bam -o TKO_Cmt.narrowPeak -f TKO_Cmt_genrich_bw_f.log -k TKO_Cmt_genrich_bw_k.log -j -y -r -e chrM -v -q 0.5 > TKO_Cmt.log
+
+cd Alignment; Genrich -t TKO_PBS1.bam,TKO_PBS2.bam -o TKO_PBS.narrowPeak -f TKO_PBS_genrich_bw_f.log -k TKO_PBS_genrich_bw_k.log -j -y -r -e chrM -v -q 0.5 > TKO_PBS.log
+
+cd Alignment; Genrich -t WT_Cmst1.bam,WT_Cmst2.bam -o WT_Cmst.narrowPeak -f WT_Cmst_genrich_bw_f.log -k WT_Cmst_genrich_bw_k.log -j -y -r -e chrM -v -q 0.5 > WT_Cmst.log
+
+cd Alignment; Genrich -t WT_PBS1.bam,WT_PBS2.bam -o WT_PBS.narrowPeak -f WT_PBS_genrich_bw_f.log -k WT_PBS_genrich_bw_k.log -j -y -r -e chrM -v -q 0.5 > WT_PBS.log
+

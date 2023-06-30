@@ -1,0 +1,20 @@
+cd Alignment; samtools view -h TKO_Cmt1.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > TKO_Cmt1_chrM_removed.bam
+
+cd Alignment; samtools view -h TKO_Cmt2.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > TKO_Cmt2_chrM_removed.bam
+
+cd Alignment; samtools view -h WT_Cmst1.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > WT_Cmst1_chrM_removed.bam
+
+cd Alignment; samtools view -h WT_Cmst2.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > WT_Cmst2_chrM_removed.bam
+
+cd Alignment; samtools view -h WT_PBS1.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > WT_PBS1_chrM_removed.bam
+
+cd Alignment; samtools view -h WT_PBS2.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > WT_PBS2_chrM_removed.bam
+
+cd Alignment; samtools view -h TKO_PBS1.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > TKO_PBS1_chrM_removed.bam
+
+cd Alignment; samtools view -h TKO_PBS2.bam -@ 32 | awk '{if($3 != "chrM"){print $0}}' | samtools view -@ 32 -Shb - > TKO_PBS2_chrM_removed.bam
+
+
+
+
+
