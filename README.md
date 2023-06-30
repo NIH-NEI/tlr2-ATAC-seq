@@ -4,7 +4,7 @@
 
 1. [atac-fastp.swarm](Tools/atac-fastp.swarm)  : swarm commands to run fastp to process fastq data, to remove adapters
 2. [bowtie2.swarm](Tools/bowtie2.swarm) : swarm commands to run bowtie alignments
-3. [chrMremovedBam.swarm](chrMremovedBam.swarm) : swarm commands to remove chrM data from alignments
+3. [chrMremovedBam.swarm](Tools/chrMremovedBam.swarm) : swarm commands to remove chrM data from alignments
 4. [bamCoverageCPMNormalization.swarm](Tools/bamCoverageCPMNormalization.swarm) : swarm commands to normalize alignment data
 5. [genrichPeakCalling.swarm](Tools/genrichPeakCalling.swarm) : swarm commands to call peaks
 6. [genrich_stats.sh](Tools/genrich_stats.sh) : shell script that generates peak statistics
